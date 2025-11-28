@@ -10,11 +10,11 @@ const Index = () => {
             <Heart className="w-10 h-10 text-primary-foreground" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
-            MediGuide AI
+            MediGuide Gemini
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
             Your intelligent health companion. Describe your symptoms and receive 
-            AI-powered insights to help understand your health better.
+            Gemini-powered insights to help understand your health better.
           </p>
         </div>
       </header>
@@ -24,7 +24,7 @@ const Index = () => {
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border/50">
-        <p>Powered by AI • For informational purposes only</p>
+        <p>Powered by Gemini • For informational purposes only</p>
       </footer>
     </div>
   );
