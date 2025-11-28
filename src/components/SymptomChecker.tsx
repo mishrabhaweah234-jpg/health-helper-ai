@@ -121,7 +121,7 @@ const SymptomChecker = () => {
             ) : (
               <>
                 <Sparkles className="mr-2 h-5 w-5" />
-                Get AI Insights
+                Get Gemini Insights
               </>
             )}
           </Button>
@@ -133,7 +133,7 @@ const SymptomChecker = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-xl flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
-              AI Health Insights
+              Gemini Health Insights
             </CardTitle>
           </CardHeader>
           <CardContent>
