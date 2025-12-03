@@ -89,10 +89,10 @@ const SymptomChecker = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
-      <Card className="border-border/50 shadow-card">
+      <Card className="border-border/50 shadow-card hover:shadow-lg transition-shadow duration-300 group">
         <CardHeader className="text-center pb-4">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Stethoscope className="w-8 h-8 text-primary" />
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors duration-300 group-hover:scale-105">
+            <Stethoscope className="w-8 h-8 text-primary group-hover:rotate-12 transition-transform duration-300" />
           </div>
           <CardTitle className="text-2xl">Describe Your Symptoms</CardTitle>
           <CardDescription className="text-base">
@@ -104,13 +104,13 @@ const SymptomChecker = () => {
             placeholder="e.g., I've had a headache for 2 days, mild fever, and feeling tired..."
             value={symptoms}
             onChange={(e) => setSymptoms(e.target.value)}
-            className="min-h-[140px] resize-none text-base"
+            className="min-h-[140px] resize-none text-base focus:ring-2 focus:ring-primary/50 transition-all duration-200"
             disabled={isLoading}
           />
           <Button
             onClick={analyzeSymptoms}
             disabled={isLoading || !symptoms.trim()}
-            className="w-full h-12 text-base font-medium"
+            className="w-full h-12 text-base font-medium hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150"
             size="lg"
           >
             {isLoading ? (
@@ -120,7 +120,7 @@ const SymptomChecker = () => {
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-5 w-5" />
+                <Sparkles className="mr-2 h-5 w-5 group-hover:animate-pulse" />
                 Get Gemini Insights
               </>
             )}
@@ -129,10 +129,10 @@ const SymptomChecker = () => {
       </Card>
 
       {response && (
-        <Card className="border-border/50 shadow-card animate-fade-in">
+        <Card className="border-border/50 shadow-card animate-fade-in hover:shadow-lg transition-shadow duration-300">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Sparkles className="w-5 h-5 text-primary animate-pulse" />
               Gemini Health Insights
             </CardTitle>
           </CardHeader>
@@ -146,10 +146,10 @@ const SymptomChecker = () => {
         </Card>
       )}
 
-      <Card className="border-warning/30 bg-warning/5">
+      <Card className="border-warning/30 bg-warning/5 hover:border-warning/50 transition-colors duration-300">
         <CardContent className="pt-4">
           <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5 animate-pulse" />
             <div className="text-sm text-muted-foreground">
               <p className="font-medium text-warning mb-1">Important Disclaimer</p>
               <p>
