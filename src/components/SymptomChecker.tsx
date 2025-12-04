@@ -2,8 +2,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Stethoscope, Send, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, Frown, Pill, Wind, Moon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const quickSymptoms = [
+  { label: "Headache", icon: Brain },
+  { label: "Fever", icon: ThermometerSun },
+  { label: "Fatigue", icon: Moon },
+  { label: "Nausea", icon: Frown },
+  { label: "Cough", icon: Wind },
+  { label: "Body aches", icon: Pill },
+];
 
 const SymptomChecker = () => {
   const [symptoms, setSymptoms] = useState("");
@@ -100,6 +110,25 @@ const SymptomChecker = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {quickSymptoms.map(({ label, icon: Icon }) => (
+              <Badge
+                key={label}
+                variant="secondary"
+                className="cursor-pointer px-3 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={() => {
+                  if (isLoading) return;
+                  const newSymptom = symptoms.trim() 
+                    ? `${symptoms}, ${label.toLowerCase()}` 
+                    : label;
+                  setSymptoms(newSymptom);
+                }}
+              >
+                <Icon className="w-3.5 h-3.5 mr-1.5" />
+                {label}
+              </Badge>
+            ))}
+          </div>
           <Textarea
             placeholder="e.g., I've had a headache for 2 days, mild fever, and feeling tired..."
             value={symptoms}
