@@ -1,9 +1,11 @@
 import SymptomChecker from "@/components/SymptomChecker";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Heart, Activity } from "lucide-react";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
+      <ThemeToggle />
       <header className="pt-12 pb-8 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-glow mb-6 animate-pulse hover:scale-110 transition-transform duration-300 cursor-pointer group">
