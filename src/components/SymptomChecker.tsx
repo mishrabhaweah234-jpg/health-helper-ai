@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, Frown, Pill, Wind, Moon } from "lucide-react";
+import { Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, Frown, Pill, Wind, Moon, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const quickSymptoms = [
@@ -20,6 +20,11 @@ const SymptomChecker = () => {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleReset = () => {
+    setSymptoms("");
+    setResponse("");
+  };
 
   const analyzeSymptoms = async () => {
     if (!symptoms.trim()) {
@@ -160,10 +165,23 @@ const SymptomChecker = () => {
       {response && (
         <Card className="border-border/50 shadow-card animate-fade-in hover:shadow-lg transition-shadow duration-300">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-              Gemini Health Insights
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                Gemini Health Insights
+              </CardTitle>
+              {!isLoading && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  className="hover:bg-primary hover:text-primary-foreground transition-all duration-200 hover:scale-105"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                  New Check
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="prose prose-slate dark:prose-invert max-w-none">
