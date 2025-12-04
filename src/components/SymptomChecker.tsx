@@ -169,6 +169,9 @@ const SymptomChecker = () => {
             <div className="prose prose-slate dark:prose-invert max-w-none">
               <div className="whitespace-pre-wrap text-foreground/90 leading-relaxed">
                 {response}
+                {isLoading && (
+                  <span className="inline-block w-2 h-5 ml-1 bg-primary animate-pulse rounded-sm" />
+                )}
               </div>
             </div>
           </CardContent>
