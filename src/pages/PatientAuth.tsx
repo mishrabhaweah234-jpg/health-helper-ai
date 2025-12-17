@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Stethoscope, User, UserCog, Loader2 } from "lucide-react";
+import { Stethoscope, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -12,9 +12,7 @@ import { z } from "zod";
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
-const DOCTOR_EMAIL = "doctor123@gmail.com";
-
-export default function Auth() {
+export default function PatientAuth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,8 +66,7 @@ export default function Auth() {
         return;
       }
       
-      const assignedRole = email.toLowerCase() === DOCTOR_EMAIL ? "doctor" : "patient";
-      const { error } = await signUp(email, password, fullName, assignedRole);
+      const { error } = await signUp(email, password, fullName, "patient");
       if (error) {
         toast({
           variant: "destructive",
@@ -92,11 +89,11 @@ export default function Auth() {
       <Card className="w-full max-w-md border-border/50 shadow-xl">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <Stethoscope className="w-8 h-8 text-primary-foreground" />
+            <User className="w-8 h-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">Digital Healthcare Assistant</CardTitle>
+          <CardTitle className="text-2xl font-bold">Patient Portal</CardTitle>
           <CardDescription>
-            {isLogin ? "Sign in to continue" : "Create your account"}
+            {isLogin ? "Sign in to continue" : "Create your patient account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,7 +104,7 @@ export default function Auth() {
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="Dr. John Smith"
+                  placeholder="John Smith"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                 />
@@ -138,30 +135,13 @@ export default function Auth() {
               />
             </div>
 
-            {!isLogin && (
-              <div className="space-y-3">
-                <Label>I am a</Label>
-                {email.toLowerCase() === DOCTOR_EMAIL ? (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                    <UserCog className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">Doctor Account</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
-                    <User className="w-4 h-4" />
-                    <span className="text-sm">Patient</span>
-                  </div>
-                )}
-              </div>
-            )}
-
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {isLogin ? "Sign In" : "Create Account"}
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center space-y-2">
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
@@ -169,6 +149,15 @@ export default function Auth() {
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
+            <div className="pt-2 border-t border-border/50">
+              <Link 
+                to="/auth/doctor" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
+              >
+                <Stethoscope className="w-3 h-3" />
+                Doctor Login
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
