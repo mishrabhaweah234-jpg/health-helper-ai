@@ -11,14 +11,14 @@ serve(async (req) => {
   }
 
   try {
-    const { symptoms } = await req.json();
+    const { symptoms, stream = false } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Analyzing symptoms:", symptoms);
+    console.log("Analyzing symptoms:", symptoms, "Stream:", stream);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -46,14 +46,14 @@ Format your response clearly with:
 3. When to seek professional help
 4. Important disclaimer
 
-Keep responses helpful but appropriately cautious.`
+Keep responses helpful but appropriately cautious. Keep the response concise (under 200 words).`
           },
           {
             role: "user",
             content: `I'm experiencing the following symptoms: ${symptoms}`
           }
         ],
-        stream: true,
+        stream: stream,
       }),
     });
 
@@ -80,8 +80,18 @@ Keep responses helpful but appropriately cautious.`
       });
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    if (stream) {
+      return new Response(response.body, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    // Non-streaming: parse the response
+    const data = await response.json();
+    const analysis = data.choices?.[0]?.message?.content || "Unable to analyze symptoms at this time.";
+    
+    return new Response(JSON.stringify({ analysis }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error in analyze-symptoms:", error);
