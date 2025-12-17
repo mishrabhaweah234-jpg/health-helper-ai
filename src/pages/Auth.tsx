@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stethoscope, User, UserCog, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -13,12 +12,13 @@ import { z } from "zod";
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
+const DOCTOR_EMAIL = "doctor123@gmail.com";
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<"patient" | "doctor">("patient");
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
@@ -68,7 +68,8 @@ export default function Auth() {
         return;
       }
       
-      const { error } = await signUp(email, password, fullName, role);
+      const assignedRole = email.toLowerCase() === DOCTOR_EMAIL ? "doctor" : "patient";
+      const { error } = await signUp(email, password, fullName, assignedRole);
       if (error) {
         toast({
           variant: "destructive",
@@ -140,24 +141,17 @@ export default function Auth() {
             {!isLogin && (
               <div className="space-y-3">
                 <Label>I am a</Label>
-                <RadioGroup value={role} onValueChange={(v) => setRole(v as "patient" | "doctor")}>
-                  <div className="flex gap-4">
-                    <div className="flex items-center space-x-2 flex-1">
-                      <RadioGroupItem value="patient" id="patient" />
-                      <Label htmlFor="patient" className="flex items-center gap-2 cursor-pointer">
-                        <User className="w-4 h-4" />
-                        Patient
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 flex-1">
-                      <RadioGroupItem value="doctor" id="doctor" />
-                      <Label htmlFor="doctor" className="flex items-center gap-2 cursor-pointer">
-                        <UserCog className="w-4 h-4" />
-                        Doctor
-                      </Label>
-                    </div>
+                {email.toLowerCase() === DOCTOR_EMAIL ? (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <UserCog className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">Doctor Account</span>
                   </div>
-                </RadioGroup>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm">Patient</span>
+                  </div>
+                )}
               </div>
             )}
 
