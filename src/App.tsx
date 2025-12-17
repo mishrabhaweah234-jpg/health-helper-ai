@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import Auth from "./pages/Auth";
+import PatientAuth from "./pages/PatientAuth";
+import DoctorAuth from "./pages/DoctorAuth";
 import PatientDashboard from "./pages/PatientDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import NotFound from "./pages/NotFound";
@@ -49,7 +50,7 @@ function RoleBasedRedirect() {
   return <PatientDashboard />;
 }
 
-function AuthRoute() {
+function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -64,12 +65,13 @@ function AuthRoute() {
     return <Navigate to="/" replace />;
   }
   
-  return <Auth />;
+  return <>{children}</>;
 }
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/auth" element={<AuthRoute />} />
+    <Route path="/auth" element={<AuthRoute><PatientAuth /></AuthRoute>} />
+    <Route path="/auth/doctor" element={<AuthRoute><DoctorAuth /></AuthRoute>} />
     <Route 
       path="/" 
       element={
