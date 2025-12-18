@@ -98,34 +98,41 @@ export default function DoctorAuth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-border/50 shadow-xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4 overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
+      </div>
+
+      <Card className="w-full max-w-md border-border/50 shadow-xl interactive-card animate-slide-up relative z-10 backdrop-blur-sm bg-card/95">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <Stethoscope className="w-8 h-8 text-primary-foreground" />
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-4 shadow-lg animate-glow-pulse hover:scale-110 transition-transform duration-300 cursor-pointer group">
+            <Stethoscope className="w-8 h-8 text-primary-foreground group-hover:rotate-12 transition-transform duration-300" />
           </div>
-          <CardTitle className="text-2xl font-bold">Doctor Portal</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-bold hover:text-primary transition-colors duration-300">Doctor Portal</CardTitle>
+          <CardDescription className="animate-fade-in">
             {isLogin ? "Sign in to your doctor account" : "Register as a doctor"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+              <div className="space-y-2 animate-slide-up">
+                <Label htmlFor="fullName" className="transition-colors hover:text-primary">Full Name</Label>
                 <Input
                   id="fullName"
                   type="text"
                   placeholder="Dr. John Smith"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
+                  className="focus-glow transition-all duration-300 hover:border-primary/50"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="transition-colors hover:text-primary">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -133,11 +140,12 @@ export default function DoctorAuth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="focus-glow transition-all duration-300 hover:border-primary/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="transition-colors hover:text-primary">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -145,10 +153,12 @@ export default function DoctorAuth() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="focus-glow transition-all duration-300 hover:border-primary/50"
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full btn-press group relative overflow-hidden" disabled={isLoading}>
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {isLogin ? "Sign In" : "Register as Doctor"}
             </Button>
@@ -158,17 +168,17 @@ export default function DoctorAuth() {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-all duration-300 hover:scale-105"
             >
               {isLogin ? "Need to register? Sign up" : "Already have an account? Sign in"}
             </button>
             <div className="pt-2 border-t border-border/50">
               <Link 
                 to="/auth" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1"
+                className="text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center justify-center gap-1 group"
               >
-                <User className="w-3 h-3" />
-                Patient Login
+                <User className="w-3 h-3 group-hover:scale-110 transition-transform duration-300" />
+                <span className="group-hover:translate-x-1 transition-transform duration-300">Patient Login</span>
               </Link>
             </div>
           </div>

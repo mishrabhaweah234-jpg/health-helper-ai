@@ -104,23 +104,24 @@ const SymptomChecker = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
-      <Card className="border-border/50 shadow-card hover:shadow-lg transition-shadow duration-300 group">
+      <Card className="border-border/50 shadow-card interactive-card group animate-slide-up">
         <CardHeader className="text-center pb-4">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors duration-300 group-hover:scale-105">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 animate-glow-pulse cursor-pointer">
             <Stethoscope className="w-8 h-8 text-primary group-hover:rotate-12 transition-transform duration-300" />
           </div>
-          <CardTitle className="text-2xl">Describe Your Symptoms</CardTitle>
+          <CardTitle className="text-2xl hover:text-primary transition-colors duration-300 cursor-default">Describe Your Symptoms</CardTitle>
           <CardDescription className="text-base">
             Tell us what you're experiencing in detail for better insights
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {quickSymptoms.map(({ label, icon: Icon }) => (
+            {quickSymptoms.map(({ label, icon: Icon }, index) => (
               <Badge
                 key={label}
                 variant="secondary"
-                className="cursor-pointer px-3 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground transition-all duration-200 hover:scale-105 active:scale-95"
+                className="cursor-pointer px-3 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground transition-all duration-200 hover:scale-110 hover:-translate-y-0.5 active:scale-95 btn-press animate-fade-in hover:shadow-md"
+                style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => {
                   if (isLoading) return;
                   const newSymptom = symptoms.trim() 
@@ -129,7 +130,7 @@ const SymptomChecker = () => {
                   setSymptoms(newSymptom);
                 }}
               >
-                <Icon className="w-3.5 h-3.5 mr-1.5" />
+                <Icon className="w-3.5 h-3.5 mr-1.5 transition-transform group-hover:scale-110" />
                 {label}
               </Badge>
             ))}
@@ -138,15 +139,16 @@ const SymptomChecker = () => {
             placeholder="e.g., I've had a headache for 2 days, mild fever, and feeling tired..."
             value={symptoms}
             onChange={(e) => setSymptoms(e.target.value)}
-            className="min-h-[140px] resize-none text-base focus:ring-2 focus:ring-primary/50 transition-all duration-200"
+            className="min-h-[140px] resize-none text-base focus-glow transition-all duration-300 hover:border-primary/50"
             disabled={isLoading}
           />
           <Button
             onClick={analyzeSymptoms}
             disabled={isLoading || !symptoms.trim()}
-            className="w-full h-12 text-base font-medium hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150"
+            className="w-full h-12 text-base font-medium btn-press group/btn relative overflow-hidden"
             size="lg"
           >
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-700" />
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -154,7 +156,7 @@ const SymptomChecker = () => {
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-5 w-5 group-hover:animate-pulse" />
+                <Sparkles className="mr-2 h-5 w-5 group-hover/btn:animate-pulse" />
                 Get Gemini Insights
               </>
             )}
@@ -163,21 +165,21 @@ const SymptomChecker = () => {
       </Card>
 
       {response && (
-        <Card className="border-border/50 shadow-card animate-fade-in hover:shadow-lg transition-shadow duration-300">
+        <Card className="border-border/50 shadow-card animate-slide-up interactive-card">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-                Gemini Health Insights
+                <span className="hover:text-primary transition-colors duration-200">Gemini Health Insights</span>
               </CardTitle>
               {!isLoading && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleReset}
-                  className="hover:bg-primary hover:text-primary-foreground transition-all duration-200 hover:scale-105"
+                  className="btn-press hover:bg-primary hover:text-primary-foreground transition-all duration-200 hover:scale-105 group/reset"
                 >
-                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                  <RotateCcw className="w-4 h-4 mr-1.5 group-hover/reset:rotate-[-180deg] transition-transform duration-500" />
                   New Check
                 </Button>
               )}
@@ -188,7 +190,7 @@ const SymptomChecker = () => {
               <div className="whitespace-pre-wrap text-foreground/90 leading-relaxed">
                 {response}
                 {isLoading && (
-                  <span className="inline-block w-2 h-5 ml-1 bg-primary animate-pulse rounded-sm" />
+                  <span className="inline-block w-2 h-5 ml-1 bg-primary animate-blink rounded-sm" />
                 )}
               </div>
             </div>
@@ -196,12 +198,12 @@ const SymptomChecker = () => {
         </Card>
       )}
 
-      <Card className="border-warning/30 bg-warning/5 hover:border-warning/50 transition-colors duration-300">
+      <Card className="border-warning/30 bg-warning/5 hover:border-warning/50 transition-all duration-300 hover:bg-warning/10 animate-fade-in group/warning">
         <CardContent className="pt-4">
           <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5 animate-pulse" />
+            <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5 animate-pulse group-hover/warning:scale-110 transition-transform duration-200" />
             <div className="text-sm text-muted-foreground">
-              <p className="font-medium text-warning mb-1">Important Disclaimer</p>
+              <p className="font-medium text-warning mb-1 group-hover/warning:text-warning transition-colors">Important Disclaimer</p>
               <p>
                 This tool provides general health information only and is not a substitute for professional medical advice. 
                 Always consult a qualified healthcare provider for diagnosis and treatment.
