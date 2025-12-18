@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle } from "lucide-react";
+import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatWindow } from "@/components/ChatWindow";
@@ -24,6 +25,7 @@ export default function DoctorDashboard() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user, signOut } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchConversations();
@@ -87,6 +89,29 @@ export default function DoctorDashboard() {
         .from('conversations')
         .update({ doctor_id: user.id, status: 'active' })
         .eq('id', conversation.id);
+    }
+  };
+
+  const handleDeleteConversation = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    
+    const { error } = await supabase
+      .from('conversations')
+      .delete()
+      .eq('id', conversationId);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete conversation",
+      });
+      return;
+    }
+
+    toast({ title: "Conversation deleted" });
+    if (selectedConversation?.id === conversationId) {
+      setSelectedConversation(null);
     }
   };
 
@@ -160,9 +185,18 @@ export default function DoctorDashboard() {
                             <User className="w-4 h-4 text-muted-foreground" />
                             <span className="font-medium text-sm">{conv.patient_name}</span>
                           </div>
-                          <Badge variant="outline" className={getStatusColor(conv.status)}>
-                            {conv.status}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={getStatusColor(conv.status)}>
+                              {conv.status}
+                            </Badge>
+                            <button
+                              onClick={(e) => handleDeleteConversation(e, conv.id)}
+                              className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                              title="Delete conversation"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                           {conv.initial_symptoms}
