@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, 
-  Frown, Pill, Wind, Moon, RotateCcw, LogOut, Plus, MessageSquare, Clock 
+  Frown, Pill, Wind, Moon, RotateCcw, LogOut, Plus, MessageSquare, Clock, Circle 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +32,7 @@ interface Conversation {
   doctor_id?: string;
   doctor_name?: string;
   doctor_specialization?: string;
+  doctor_is_online?: boolean;
 }
 
 export default function PatientDashboard() {
@@ -78,18 +79,19 @@ export default function PatientDashboard() {
     if (!error && data) {
       // Fetch doctor info for conversations with assigned doctors
       const doctorIds = [...new Set(data.filter(c => c.doctor_id).map(c => c.doctor_id))];
-      let doctorMap = new Map<string, { name: string; specialization: string | null }>();
+      let doctorMap = new Map<string, { name: string; specialization: string | null; is_online: boolean }>();
       
       if (doctorIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('user_id, full_name, specialization')
+          .select('user_id, full_name, specialization, is_online')
           .in('user_id', doctorIds);
         
         profiles?.forEach(p => {
           doctorMap.set(p.user_id, { 
             name: p.full_name || 'Doctor', 
-            specialization: p.specialization 
+            specialization: p.specialization,
+            is_online: p.is_online ?? false
           });
         });
       }
@@ -98,6 +100,7 @@ export default function PatientDashboard() {
         ...c,
         doctor_name: c.doctor_id ? doctorMap.get(c.doctor_id)?.name : undefined,
         doctor_specialization: c.doctor_id ? doctorMap.get(c.doctor_id)?.specialization : undefined,
+        doctor_is_online: c.doctor_id ? doctorMap.get(c.doctor_id)?.is_online : undefined,
       }));
 
       setConversations(convosWithDoctor);
@@ -337,10 +340,18 @@ export default function PatientDashboard() {
                     
                     {/* Doctor Info */}
                     {selectedConversation.doctor_name && (
-                      <div className="mb-3 p-2 rounded-lg bg-primary/5 border border-primary/10">
-                        <div className="flex items-center gap-2">
-                          <Stethoscope className="w-4 h-4 text-primary" />
-                          <span className="font-medium text-sm">{selectedConversation.doctor_name}</span>
+                      <div className="mb-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Stethoscope className="w-4 h-4 text-primary" />
+                            <span className="font-medium text-sm">{selectedConversation.doctor_name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Circle className={`w-2.5 h-2.5 ${selectedConversation.doctor_is_online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
+                            <span className={`text-xs ${selectedConversation.doctor_is_online ? 'text-green-600' : 'text-muted-foreground'}`}>
+                              {selectedConversation.doctor_is_online ? 'Online' : 'Offline'}
+                            </span>
+                          </div>
                         </div>
                         {selectedConversation.doctor_specialization && (
                           <p className="text-xs text-muted-foreground mt-1 ml-6">
