@@ -29,6 +29,9 @@ interface Conversation {
   ai_response: string | null;
   status: string;
   created_at: string;
+  doctor_id?: string;
+  doctor_name?: string;
+  doctor_specialization?: string;
 }
 
 export default function PatientDashboard() {
@@ -73,9 +76,33 @@ export default function PatientDashboard() {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setConversations(data);
-      if (data.length > 0 && !selectedConversation) {
-        setSelectedConversation(data[0]);
+      // Fetch doctor info for conversations with assigned doctors
+      const doctorIds = [...new Set(data.filter(c => c.doctor_id).map(c => c.doctor_id))];
+      let doctorMap = new Map<string, { name: string; specialization: string | null }>();
+      
+      if (doctorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, specialization')
+          .in('user_id', doctorIds);
+        
+        profiles?.forEach(p => {
+          doctorMap.set(p.user_id, { 
+            name: p.full_name || 'Doctor', 
+            specialization: p.specialization 
+          });
+        });
+      }
+
+      const convosWithDoctor = data.map(c => ({
+        ...c,
+        doctor_name: c.doctor_id ? doctorMap.get(c.doctor_id)?.name : undefined,
+        doctor_specialization: c.doctor_id ? doctorMap.get(c.doctor_id)?.specialization : undefined,
+      }));
+
+      setConversations(convosWithDoctor);
+      if (convosWithDoctor.length > 0 && !selectedConversation) {
+        setSelectedConversation(convosWithDoctor[0]);
       }
     }
   };
@@ -307,6 +334,22 @@ export default function PatientDashboard() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{selectedConversation.initial_symptoms}</p>
+                    
+                    {/* Doctor Info */}
+                    {selectedConversation.doctor_name && (
+                      <div className="mb-3 p-2 rounded-lg bg-primary/5 border border-primary/10">
+                        <div className="flex items-center gap-2">
+                          <Stethoscope className="w-4 h-4 text-primary" />
+                          <span className="font-medium text-sm">{selectedConversation.doctor_name}</span>
+                        </div>
+                        {selectedConversation.doctor_specialization && (
+                          <p className="text-xs text-muted-foreground mt-1 ml-6">
+                            {selectedConversation.doctor_specialization}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
                     {selectedConversation.ai_response && (
                       <>
                         <h3 className="font-semibold mb-2 flex items-center gap-2">
