@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X } from "lucide-react";
+import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X, Circle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +30,7 @@ export default function DoctorDashboard() {
   const [specialization, setSpecialization] = useState("");
   const [editingSpecialization, setEditingSpecialization] = useState(false);
   const [tempSpecialization, setTempSpecialization] = useState("");
+  const [isOnline, setIsOnline] = useState(false);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
@@ -41,11 +44,27 @@ export default function DoctorDashboard() {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('specialization')
+      .select('specialization, is_online')
       .eq('user_id', user.id)
       .maybeSingle();
-    if (data?.specialization) {
-      setSpecialization(data.specialization);
+    if (data) {
+      if (data.specialization) setSpecialization(data.specialization);
+      setIsOnline(data.is_online ?? false);
+    }
+  };
+
+  const toggleOnlineStatus = async (checked: boolean) => {
+    if (!user) return;
+    setIsOnline(checked);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_online: checked })
+      .eq('user_id', user.id);
+    if (error) {
+      setIsOnline(!checked);
+      toast({ variant: "destructive", title: "Error", description: "Failed to update status" });
+    } else {
+      toast({ title: checked ? "You are now online" : "You are now offline" });
     }
   };
 
@@ -207,7 +226,18 @@ export default function DoctorDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="online-status"
+                checked={isOnline}
+                onCheckedChange={toggleOnlineStatus}
+              />
+              <Label htmlFor="online-status" className="flex items-center gap-1.5 text-sm cursor-pointer">
+                <Circle className={`w-2.5 h-2.5 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
+                {isOnline ? 'Online' : 'Offline'}
+              </Label>
+            </div>
             <ThemeToggle />
             <Button variant="outline" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
