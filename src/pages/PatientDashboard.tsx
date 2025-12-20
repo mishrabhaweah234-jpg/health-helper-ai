@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, 
   Frown, Pill, Wind, Moon, RotateCcw, LogOut, Plus, MessageSquare, Clock, Circle 
@@ -33,6 +34,7 @@ interface Conversation {
   doctor_name?: string;
   doctor_specialization?: string;
   doctor_is_online?: boolean;
+  doctor_avatar_url?: string;
 }
 
 export default function PatientDashboard() {
@@ -79,19 +81,20 @@ export default function PatientDashboard() {
     if (!error && data) {
       // Fetch doctor info for conversations with assigned doctors
       const doctorIds = [...new Set(data.filter(c => c.doctor_id).map(c => c.doctor_id))];
-      let doctorMap = new Map<string, { name: string; specialization: string | null; is_online: boolean }>();
+      let doctorMap = new Map<string, { name: string; specialization: string | null; is_online: boolean; avatar_url: string | null }>();
       
       if (doctorIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('user_id, full_name, specialization, is_online')
+          .select('user_id, full_name, specialization, is_online, avatar_url')
           .in('user_id', doctorIds);
         
         profiles?.forEach(p => {
           doctorMap.set(p.user_id, { 
             name: p.full_name || 'Doctor', 
             specialization: p.specialization,
-            is_online: p.is_online ?? false
+            is_online: p.is_online ?? false,
+            avatar_url: p.avatar_url
           });
         });
       }
@@ -101,6 +104,7 @@ export default function PatientDashboard() {
         doctor_name: c.doctor_id ? doctorMap.get(c.doctor_id)?.name : undefined,
         doctor_specialization: c.doctor_id ? doctorMap.get(c.doctor_id)?.specialization : undefined,
         doctor_is_online: c.doctor_id ? doctorMap.get(c.doctor_id)?.is_online : undefined,
+        doctor_avatar_url: c.doctor_id ? doctorMap.get(c.doctor_id)?.avatar_url : undefined,
       }));
 
       setConversations(convosWithDoctor);
@@ -342,9 +346,21 @@ export default function PatientDashboard() {
                     {selectedConversation.doctor_name && (
                       <div className="mb-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Stethoscope className="w-4 h-4 text-primary" />
-                            <span className="font-medium text-sm">{selectedConversation.doctor_name}</span>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 border-2 border-primary/20">
+                              <AvatarImage src={selectedConversation.doctor_avatar_url || undefined} alt="Doctor" />
+                              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80">
+                                <Stethoscope className="w-4 h-4 text-primary-foreground" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <span className="font-medium text-sm">{selectedConversation.doctor_name}</span>
+                              {selectedConversation.doctor_specialization && (
+                                <p className="text-xs text-muted-foreground">
+                                  {selectedConversation.doctor_specialization}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Circle className={`w-2.5 h-2.5 ${selectedConversation.doctor_is_online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
@@ -353,11 +369,6 @@ export default function PatientDashboard() {
                             </span>
                           </div>
                         </div>
-                        {selectedConversation.doctor_specialization && (
-                          <p className="text-xs text-muted-foreground mt-1 ml-6">
-                            {selectedConversation.doctor_specialization}
-                          </p>
-                        )}
                       </div>
                     )}
                     
