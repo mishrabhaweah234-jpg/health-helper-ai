@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X, Circle } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X, Circle, Camera, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,9 @@ export default function DoctorDashboard() {
   const [editingSpecialization, setEditingSpecialization] = useState(false);
   const [tempSpecialization, setTempSpecialization] = useState("");
   const [isOnline, setIsOnline] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
@@ -44,12 +48,65 @@ export default function DoctorDashboard() {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('specialization, is_online')
+      .select('specialization, is_online, avatar_url')
       .eq('user_id', user.id)
       .maybeSingle();
     if (data) {
       if (data.specialization) setSpecialization(data.specialization);
       setIsOnline(data.is_online ?? false);
+      setAvatarUrl(data.avatar_url);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Please upload an image file" });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File too large", description: "Maximum file size is 5MB" });
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast({ title: "Profile photo updated" });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      toast({ variant: "destructive", title: "Upload failed", description: "Could not upload photo" });
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -186,8 +243,31 @@ export default function DoctorDashboard() {
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center">
-              <Stethoscope className="w-5 h-5 text-primary-foreground" />
+            {/* Avatar Upload */}
+            <div className="relative group">
+              <Avatar className="w-12 h-12 cursor-pointer border-2 border-primary/20" onClick={() => fileInputRef.current?.click()}>
+                <AvatarImage src={avatarUrl || undefined} alt="Doctor avatar" />
+                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80">
+                  <Stethoscope className="w-5 h-5 text-primary-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div 
+                className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploadingAvatar ? (
+                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4 text-white" />
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             </div>
             <div>
               <h1 className="font-bold text-lg">Doctor Dashboard</h1>
