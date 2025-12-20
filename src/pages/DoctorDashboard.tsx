@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,8 +25,44 @@ export default function DoctorDashboard() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [specialization, setSpecialization] = useState("");
+  const [editingSpecialization, setEditingSpecialization] = useState(false);
+  const [tempSpecialization, setTempSpecialization] = useState("");
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchDoctorProfile();
+    }
+  }, [user]);
+
+  const fetchDoctorProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('specialization')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (data?.specialization) {
+      setSpecialization(data.specialization);
+    }
+  };
+
+  const saveSpecialization = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ specialization: tempSpecialization })
+      .eq('user_id', user.id);
+    if (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to save specialization" });
+    } else {
+      setSpecialization(tempSpecialization);
+      setEditingSpecialization(false);
+      toast({ title: "Specialization updated" });
+    }
+  };
 
   useEffect(() => {
     fetchConversations();
@@ -135,7 +172,39 @@ export default function DoctorDashboard() {
             </div>
             <div>
               <h1 className="font-bold text-lg">Doctor Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Manage patient consultations</p>
+              <div className="flex items-center gap-2">
+                {editingSpecialization ? (
+                  <>
+                    <Input
+                      value={tempSpecialization}
+                      onChange={(e) => setTempSpecialization(e.target.value)}
+                      placeholder="Enter specialization..."
+                      className="h-6 text-xs w-40"
+                    />
+                    <button onClick={saveSpecialization} className="text-green-600 hover:text-green-700">
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setEditingSpecialization(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {specialization || "No specialization set"}
+                    </p>
+                    <button
+                      onClick={() => {
+                        setTempSpecialization(specialization);
+                        setEditingSpecialization(true);
+                      }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
