@@ -7,13 +7,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, 
-  Frown, Pill, Wind, Moon, RotateCcw, LogOut, Plus, MessageSquare, Clock, Circle 
+  Frown, Pill, Wind, Moon, RotateCcw, LogOut, Plus, MessageSquare, Clock, Circle, Video, Phone, Bot 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatWindow } from "@/components/ChatWindow";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
+import { VideoCallModal } from "@/components/VideoCallModal";
+import { IncomingCallModal } from "@/components/IncomingCallModal";
+import { AIVoiceAssistant } from "@/components/AIVoiceAssistant";
+import { useCallManager } from "@/hooks/useCallManager";
 
 const quickSymptoms = [
   { label: "Headache", icon: Brain },
@@ -43,8 +47,10 @@ export default function PatientDashboard() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showNewConsultation, setShowNewConsultation] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { incomingCall, activeCall, initiateCall, acceptCall, declineCall, endCall } = useCallManager();
 
   useEffect(() => {
     fetchConversations();
@@ -368,6 +374,24 @@ export default function PatientDashboard() {
                               {selectedConversation.doctor_is_online ? 'Online' : 'Offline'}
                             </span>
                           </div>
+                          <div className="flex items-center gap-1 ml-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => initiateCall(selectedConversation.doctor_id!, selectedConversation.doctor_name!, selectedConversation.doctor_avatar_url, 'voice', selectedConversation.id)}
+                              disabled={!selectedConversation.doctor_id}
+                            >
+                              <Phone className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => initiateCall(selectedConversation.doctor_id!, selectedConversation.doctor_name!, selectedConversation.doctor_avatar_url, 'video', selectedConversation.id)}
+                              disabled={!selectedConversation.doctor_id}
+                            >
+                              <Video className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -392,6 +416,38 @@ export default function PatientDashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Voice Assistant Button */}
+      <Button
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg"
+        onClick={() => setShowAIAssistant(true)}
+      >
+        <Bot className="w-6 h-6" />
+      </Button>
+
+      {/* Modals */}
+      <AIVoiceAssistant isOpen={showAIAssistant} onClose={() => setShowAIAssistant(false)} />
+
+      {incomingCall && (
+        <IncomingCallModal
+          isOpen={true}
+          callerName={incomingCall.callerName}
+          callerAvatar={incomingCall.callerAvatar}
+          callType={incomingCall.callType}
+          onAccept={acceptCall}
+          onDecline={declineCall}
+        />
+      )}
+
+      {activeCall && (
+        <VideoCallModal
+          isOpen={true}
+          onClose={endCall}
+          callSessionId={activeCall.id}
+          isInitiator={activeCall.isInitiator}
+          remoteName={activeCall.remoteName}
+        />
+      )}
     </div>
   );
 }
