@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X, Circle, Camera, Loader2 } from "lucide-react";
+import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, Edit2, Check, X, Circle, Camera, Loader2, Video, Phone, Bot } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatWindow } from "@/components/ChatWindow";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { VideoCallModal } from "@/components/VideoCallModal";
+import { IncomingCallModal } from "@/components/IncomingCallModal";
+import { AIVoiceAssistant } from "@/components/AIVoiceAssistant";
+import { useCallManager } from "@/hooks/useCallManager";
 
 interface Conversation {
   id: string;
@@ -34,9 +38,11 @@ export default function DoctorDashboard() {
   const [isOnline, setIsOnline] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { incomingCall, activeCall, initiateCall, acceptCall, declineCall, endCall } = useCallManager();
 
   useEffect(() => {
     if (user) {
@@ -399,7 +405,42 @@ export default function DoctorDashboard() {
                 {/* Patient Info */}
                 <Card className="border-border/50">
                   <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">Initial Symptoms</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold">Initial Symptoms</h3>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            initiateCall(
+                              selectedConversation.patient_id,
+                              selectedConversation.patient_name || 'Patient',
+                              undefined,
+                              'voice',
+                              selectedConversation.id
+                            );
+                          }}
+                        >
+                          <Phone className="w-4 h-4 mr-1" />
+                          Call
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            initiateCall(
+                              selectedConversation.patient_id,
+                              selectedConversation.patient_name || 'Patient',
+                              undefined,
+                              'video',
+                              selectedConversation.id
+                            );
+                          }}
+                        >
+                          <Video className="w-4 h-4 mr-1" />
+                          Video
+                        </Button>
+                      </div>
+                    </div>
                     <p className="text-sm text-muted-foreground mb-3">{selectedConversation.initial_symptoms}</p>
                     {selectedConversation.ai_response && (
                       <>
@@ -428,6 +469,38 @@ export default function DoctorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Voice Assistant Button */}
+      <Button
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg"
+        onClick={() => setShowAIAssistant(true)}
+      >
+        <Bot className="w-6 h-6" />
+      </Button>
+
+      {/* Modals */}
+      <AIVoiceAssistant isOpen={showAIAssistant} onClose={() => setShowAIAssistant(false)} />
+
+      {incomingCall && (
+        <IncomingCallModal
+          isOpen={true}
+          callerName={incomingCall.callerName}
+          callerAvatar={incomingCall.callerAvatar}
+          callType={incomingCall.callType}
+          onAccept={acceptCall}
+          onDecline={declineCall}
+        />
+      )}
+
+      {activeCall && (
+        <VideoCallModal
+          isOpen={true}
+          onClose={endCall}
+          callSessionId={activeCall.id}
+          isInitiator={activeCall.isInitiator}
+          remoteName={activeCall.remoteName}
+        />
+      )}
     </div>
   );
 }
