@@ -14,6 +14,88 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_sessions: {
+        Row: {
+          call_type: string
+          callee_id: string
+          caller_id: string
+          conversation_id: string | null
+          created_at: string
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          call_type: string
+          callee_id: string
+          caller_id: string
+          conversation_id?: string | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          call_type?: string
+          callee_id?: string
+          caller_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_signals: {
+        Row: {
+          call_session_id: string
+          created_at: string
+          from_user_id: string
+          id: string
+          signal_data: Json
+          signal_type: string
+          to_user_id: string
+        }
+        Insert: {
+          call_session_id: string
+          created_at?: string
+          from_user_id: string
+          id?: string
+          signal_data: Json
+          signal_type: string
+          to_user_id: string
+        }
+        Update: {
+          call_session_id?: string
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          signal_data?: Json
+          signal_type?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_signals_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           ai_response: string | null
