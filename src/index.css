@@ -674,6 +674,101 @@
     --login-card-bg: 150 40% 10%;
     --login-accent: 150 40% 18%;
   }
+
+  /* Sunset Theme - Warm Orange/Red */
+  .login-sunset {
+    --login-bg-from: 30 40% 98%;
+    --login-bg-to: 15 50% 94%;
+    --login-primary: 25 90% 55%;
+    --login-primary-glow: 350 80% 50%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 25 60% 92%;
+  }
+
+  .dark.login-sunset {
+    --login-bg-from: 15 50% 6%;
+    --login-bg-to: 350 40% 10%;
+    --login-primary: 25 90% 55%;
+    --login-primary-glow: 350 80% 55%;
+    --login-card-bg: 15 40% 10%;
+    --login-accent: 25 50% 18%;
+  }
+
+  /* Midnight Theme - Deep Blue */
+  .login-midnight {
+    --login-bg-from: 230 35% 98%;
+    --login-bg-to: 240 40% 94%;
+    --login-primary: 230 70% 45%;
+    --login-primary-glow: 250 60% 55%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 230 50% 92%;
+  }
+
+  .dark.login-midnight {
+    --login-bg-from: 230 50% 5%;
+    --login-bg-to: 240 60% 8%;
+    --login-primary: 230 70% 55%;
+    --login-primary-glow: 250 60% 60%;
+    --login-card-bg: 230 50% 10%;
+    --login-accent: 230 40% 18%;
+  }
+
+  /* Rose Theme - Pink/Magenta */
+  .login-rose {
+    --login-bg-from: 340 35% 98%;
+    --login-bg-to: 330 40% 94%;
+    --login-primary: 340 75% 55%;
+    --login-primary-glow: 320 65% 50%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 340 50% 92%;
+  }
+
+  .dark.login-rose {
+    --login-bg-from: 340 50% 6%;
+    --login-bg-to: 330 45% 10%;
+    --login-primary: 340 75% 60%;
+    --login-primary-glow: 320 65% 55%;
+    --login-card-bg: 340 45% 10%;
+    --login-accent: 340 40% 18%;
+  }
+
+  /* Arctic Theme - Cyan/Teal */
+  .login-arctic {
+    --login-bg-from: 195 40% 98%;
+    --login-bg-to: 185 45% 94%;
+    --login-primary: 195 80% 50%;
+    --login-primary-glow: 180 70% 45%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 195 55% 92%;
+  }
+
+  .dark.login-arctic {
+    --login-bg-from: 195 50% 6%;
+    --login-bg-to: 185 55% 10%;
+    --login-primary: 195 80% 55%;
+    --login-primary-glow: 180 70% 50%;
+    --login-card-bg: 195 50% 10%;
+    --login-accent: 195 45% 18%;
+  }
+
+  /* Ember Theme - Orange/Gold */
+  .login-ember {
+    --login-bg-from: 35 45% 98%;
+    --login-bg-to: 25 50% 94%;
+    --login-primary: 15 85% 50%;
+    --login-primary-glow: 35 90% 55%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 30 60% 92%;
+  }
+
+  .dark.login-ember {
+    --login-bg-from: 20 55% 6%;
+    --login-bg-to: 30 50% 10%;
+    --login-primary: 15 85% 55%;
+    --login-primary-glow: 35 90% 60%;
+    --login-card-bg: 25 50% 10%;
+    --login-accent: 25 50% 18%;
+  }
 }
 
 /* Login theme utility classes */
