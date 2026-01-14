@@ -5,6 +5,11 @@ const loginThemes = [
   { id: "classic", name: "Classic", color: "hsl(210 80% 50%)", accent: "hsl(210 60% 40%)" },
   { id: "obsidian", name: "Obsidian", color: "hsl(260 70% 50%)", accent: "hsl(280 60% 45%)" },
   { id: "verdant", name: "Verdant", color: "hsl(150 60% 40%)", accent: "hsl(130 50% 35%)" },
+  { id: "sunset", name: "Sunset", color: "hsl(25 90% 55%)", accent: "hsl(350 80% 50%)" },
+  { id: "midnight", name: "Midnight", color: "hsl(230 70% 45%)", accent: "hsl(250 60% 55%)" },
+  { id: "rose", name: "Rose", color: "hsl(340 75% 55%)", accent: "hsl(320 65% 45%)" },
+  { id: "arctic", name: "Arctic", color: "hsl(195 80% 50%)", accent: "hsl(180 70% 45%)" },
+  { id: "ember", name: "Ember", color: "hsl(15 85% 50%)", accent: "hsl(35 90% 55%)" },
 ];
 
 export function LoginThemeSelector() {
@@ -22,7 +27,12 @@ export function LoginThemeSelector() {
     document.documentElement.classList.remove(
       "login-classic",
       "login-obsidian",
-      "login-verdant"
+      "login-verdant",
+      "login-sunset",
+      "login-midnight",
+      "login-rose",
+      "login-arctic",
+      "login-ember"
     );
     document.documentElement.classList.add(`login-${themeId}`);
   };
