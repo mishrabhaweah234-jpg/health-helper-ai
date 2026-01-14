@@ -8,6 +8,7 @@ import { Stethoscope, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { LoginDarkModeToggle } from "@/components/LoginDarkModeToggle";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -171,6 +172,8 @@ export default function PatientAuth() {
           </div>
         </CardContent>
       </Card>
+      
+      <LoginDarkModeToggle />
     </div>
   );
 }
