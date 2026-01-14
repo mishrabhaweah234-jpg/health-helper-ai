@@ -615,3 +615,84 @@
     opacity: 1;
   }
 }
+
+/* Login Portal Themes */
+@layer base {
+  /* Classic Theme - Clean Blue Professional */
+  .login-classic {
+    --login-bg-from: 210 40% 98%;
+    --login-bg-to: 210 80% 95%;
+    --login-primary: 210 80% 50%;
+    --login-primary-glow: 210 80% 50%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 210 60% 92%;
+  }
+
+  .dark.login-classic {
+    --login-bg-from: 220 30% 8%;
+    --login-bg-to: 220 40% 12%;
+    --login-primary: 210 80% 55%;
+    --login-primary-glow: 210 80% 55%;
+    --login-card-bg: 220 30% 12%;
+    --login-accent: 210 50% 20%;
+  }
+
+  /* Obsidian Theme - Deep Purple/Violet */
+  .login-obsidian {
+    --login-bg-from: 270 30% 98%;
+    --login-bg-to: 280 40% 94%;
+    --login-primary: 260 70% 50%;
+    --login-primary-glow: 280 60% 55%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 270 50% 92%;
+  }
+
+  .dark.login-obsidian {
+    --login-bg-from: 270 40% 6%;
+    --login-bg-to: 280 50% 10%;
+    --login-primary: 260 70% 60%;
+    --login-primary-glow: 280 60% 65%;
+    --login-card-bg: 270 40% 10%;
+    --login-accent: 270 40% 18%;
+  }
+
+  /* Verdant Theme - Fresh Green */
+  .login-verdant {
+    --login-bg-from: 140 30% 98%;
+    --login-bg-to: 150 40% 94%;
+    --login-primary: 150 60% 40%;
+    --login-primary-glow: 130 50% 45%;
+    --login-card-bg: 0 0% 100%;
+    --login-accent: 150 45% 92%;
+  }
+
+  .dark.login-verdant {
+    --login-bg-from: 150 40% 6%;
+    --login-bg-to: 140 50% 10%;
+    --login-primary: 150 60% 45%;
+    --login-primary-glow: 130 50% 50%;
+    --login-card-bg: 150 40% 10%;
+    --login-accent: 150 40% 18%;
+  }
+}
+
+/* Login theme utility classes */
+.login-bg {
+  background: linear-gradient(135deg, hsl(var(--login-bg-from, var(--background))), hsl(var(--login-bg-to, var(--primary) / 0.05)));
+}
+
+.login-primary-gradient {
+  background: linear-gradient(135deg, hsl(var(--login-primary, var(--primary))), hsl(var(--login-primary-glow, var(--primary) / 0.8)));
+}
+
+.login-card-bg {
+  background-color: hsl(var(--login-card-bg, var(--card)) / 0.95);
+}
+
+.login-glow {
+  box-shadow: 0 0 30px -5px hsl(var(--login-primary, var(--primary)) / 0.3);
+}
+
+.login-accent-bg {
+  background-color: hsl(var(--login-accent, var(--accent)) / 0.5);
+}
