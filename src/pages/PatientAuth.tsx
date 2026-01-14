@@ -8,7 +8,6 @@ import { Stethoscope, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { LoginThemeSelector } from "@/components/LoginThemeSelector";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -86,16 +85,16 @@ export default function PatientAuth() {
   };
 
   return (
-    <div className="min-h-screen login-bg flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 login-accent-bg rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 login-accent-bg rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
       </div>
       
-      <Card className="w-full max-w-md border-border/50 shadow-xl interactive-card animate-slide-up relative z-10 backdrop-blur-sm login-card-bg">
+      <Card className="w-full max-w-md border-border/50 shadow-xl interactive-card animate-slide-up relative z-10 backdrop-blur-sm bg-card/95">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto w-16 h-16 login-primary-gradient rounded-2xl flex items-center justify-center mb-4 shadow-lg animate-glow-pulse hover:scale-110 transition-transform duration-300 cursor-pointer group login-glow">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-4 shadow-lg animate-glow-pulse hover:scale-110 transition-transform duration-300 cursor-pointer group">
             <User className="w-8 h-8 text-primary-foreground group-hover:scale-110 transition-transform" />
           </div>
           <CardTitle className="text-2xl font-bold hover:text-primary transition-colors duration-300">Patient Portal</CardTitle>
@@ -172,8 +171,6 @@ export default function PatientAuth() {
           </div>
         </CardContent>
       </Card>
-      
-      <LoginThemeSelector />
     </div>
   );
 }
