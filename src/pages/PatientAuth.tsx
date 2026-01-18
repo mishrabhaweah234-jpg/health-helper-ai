@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Stethoscope, User, Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { usePatientAuth } from "@/hooks/usePatientAuth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { LoginDarkModeToggle } from "@/components/LoginDarkModeToggle";
@@ -19,7 +19,7 @@ export default function PatientAuth() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp } = usePatientAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ export default function PatientAuth() {
         });
       } else {
         toast({ title: "Welcome back!" });
-        navigate("/");
+        navigate("/patient");
       }
     } else {
       if (!fullName.trim()) {
@@ -67,7 +67,7 @@ export default function PatientAuth() {
         return;
       }
       
-      const { error } = await signUp(email, password, fullName, "patient");
+      const { error } = await signUp(email, password, fullName);
       if (error) {
         toast({
           variant: "destructive",
@@ -78,7 +78,7 @@ export default function PatientAuth() {
         });
       } else {
         toast({ title: "Account created successfully!" });
-        navigate("/");
+        navigate("/patient");
       }
     }
 

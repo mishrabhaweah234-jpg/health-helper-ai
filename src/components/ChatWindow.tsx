@@ -4,8 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
@@ -18,20 +17,21 @@ interface Message {
 interface ChatWindowProps {
   conversationId: string;
   patientName?: string;
+  supabaseClient: SupabaseClient;
+  user: User | null;
 }
 
-export function ChatWindow({ conversationId, patientName }: ChatWindowProps) {
+export function ChatWindow({ conversationId, patientName, supabaseClient, user }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchMessages();
     
-    const channel = supabase
+    const channel = supabaseClient
       .channel(`messages-${conversationId}`)
       .on(
         'postgres_changes',
@@ -48,9 +48,9 @@ export function ChatWindow({ conversationId, patientName }: ChatWindowProps) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabaseClient.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, supabaseClient]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -59,7 +59,7 @@ export function ChatWindow({ conversationId, patientName }: ChatWindowProps) {
   }, [messages]);
 
   const fetchMessages = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
@@ -82,7 +82,7 @@ export function ChatWindow({ conversationId, patientName }: ChatWindowProps) {
     if (!newMessage.trim() || !user) return;
 
     setIsLoading(true);
-    const { error } = await supabase.from('messages').insert({
+    const { error } = await supabaseClient.from('messages').insert({
       conversation_id: conversationId,
       sender_id: user.id,
       content: newMessage.trim(),

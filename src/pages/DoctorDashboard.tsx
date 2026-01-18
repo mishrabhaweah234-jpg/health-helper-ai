@@ -9,8 +9,8 @@ import { Stethoscope, LogOut, MessageSquare, User, Clock, AlertCircle, Trash2, E
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { doctorSupabase } from "@/integrations/supabase/doctorClient";
+import { useDoctorAuth } from "@/hooks/useDoctorAuth";
 import { ChatWindow } from "@/components/ChatWindow";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { VideoCallModal } from "@/components/VideoCallModal";
@@ -40,9 +40,9 @@ export default function DoctorDashboard() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useDoctorAuth();
   const { toast } = useToast();
-  const { incomingCall, activeCall, initiateCall, acceptCall, declineCall, endCall } = useCallManager();
+  const { incomingCall, activeCall, initiateCall, acceptCall, declineCall, endCall } = useCallManager(doctorSupabase, user);
 
   useEffect(() => {
     if (user) {
@@ -52,7 +52,7 @@ export default function DoctorDashboard() {
 
   const fetchDoctorProfile = async () => {
     if (!user) return;
-    const { data } = await supabase
+    const { data } = await doctorSupabase
       .from('profiles')
       .select('specialization, is_online, avatar_url')
       .eq('user_id', user.id)
@@ -87,19 +87,19 @@ export default function DoctorDashboard() {
       const filePath = `${user.id}/avatar.${fileExt}`;
 
       // Upload to storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await doctorSupabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = doctorSupabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
       // Update profile
-      const { error: updateError } = await supabase
+      const { error: updateError } = await doctorSupabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('user_id', user.id);
@@ -119,7 +119,7 @@ export default function DoctorDashboard() {
   const toggleOnlineStatus = async (checked: boolean) => {
     if (!user) return;
     setIsOnline(checked);
-    const { error } = await supabase
+    const { error } = await doctorSupabase
       .from('profiles')
       .update({ is_online: checked })
       .eq('user_id', user.id);
@@ -133,7 +133,7 @@ export default function DoctorDashboard() {
 
   const saveSpecialization = async () => {
     if (!user) return;
-    const { error } = await supabase
+    const { error } = await doctorSupabase
       .from('profiles')
       .update({ specialization: tempSpecialization })
       .eq('user_id', user.id);
@@ -149,7 +149,7 @@ export default function DoctorDashboard() {
   useEffect(() => {
     fetchConversations();
     
-    const channel = supabase
+    const channel = doctorSupabase
       .channel('conversations-updates')
       .on(
         'postgres_changes',
@@ -165,12 +165,12 @@ export default function DoctorDashboard() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      doctorSupabase.removeChannel(channel);
     };
   }, []);
 
   const fetchConversations = async () => {
-    const { data: convos, error } = await supabase
+    const { data: convos, error } = await doctorSupabase
       .from('conversations')
       .select('*')
       .order('created_at', { ascending: false });
@@ -183,7 +183,7 @@ export default function DoctorDashboard() {
 
     // Fetch patient names
     const patientIds = [...new Set(convos?.map(c => c.patient_id) || [])];
-    const { data: profiles } = await supabase
+    const { data: profiles } = await doctorSupabase
       .from('profiles')
       .select('user_id, full_name')
       .in('user_id', patientIds);
@@ -204,7 +204,7 @@ export default function DoctorDashboard() {
     
     // Claim conversation if pending
     if (conversation.status === 'pending' && user) {
-      await supabase
+      await doctorSupabase
         .from('conversations')
         .update({ doctor_id: user.id, status: 'active' })
         .eq('id', conversation.id);
@@ -214,7 +214,7 @@ export default function DoctorDashboard() {
   const handleDeleteConversation = async (e: React.MouseEvent, conversationId: string) => {
     e.stopPropagation();
     
-    const { error } = await supabase
+    const { error } = await doctorSupabase
       .from('conversations')
       .delete()
       .eq('id', conversationId);
@@ -455,6 +455,8 @@ export default function DoctorDashboard() {
                   <ChatWindow 
                     conversationId={selectedConversation.id} 
                     patientName={selectedConversation.patient_name}
+                    supabaseClient={doctorSupabase}
+                    user={user}
                   />
                 </div>
               </div>
