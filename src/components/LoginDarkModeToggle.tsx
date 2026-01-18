@@ -4,17 +4,29 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 export function LoginDarkModeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed top-4 right-4 rounded-full bg-card/80 backdrop-blur-sm border-border/50 shadow-lg z-50"
+      >
+        <Sun className="h-5 w-5" />
+      </Button>
+    );
+  }
+
+  const isDark = resolvedTheme === "dark";
 
   const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
@@ -24,10 +36,10 @@ export function LoginDarkModeToggle() {
       onClick={toggleTheme}
       className="fixed top-4 right-4 rounded-full bg-card/80 backdrop-blur-sm border-border/50 hover:bg-accent hover:scale-110 transition-all duration-300 shadow-lg z-50"
     >
-      {resolvedTheme === "dark" ? (
-        <Sun className="h-5 w-5" />
+      {isDark ? (
+        <Sun className="h-5 w-5 text-yellow-500" />
       ) : (
-        <Moon className="h-5 w-5" />
+        <Moon className="h-5 w-5 text-slate-700" />
       )}
       <span className="sr-only">Toggle dark mode</span>
     </Button>
