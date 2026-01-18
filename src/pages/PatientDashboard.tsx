@@ -9,8 +9,8 @@ import {
   Stethoscope, Send, Loader2, AlertCircle, Sparkles, ThermometerSun, Brain, 
   Frown, Pill, Wind, Moon, RotateCcw, LogOut, Plus, MessageSquare, Clock, Circle, Video, Phone, Bot 
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { patientSupabase } from "@/integrations/supabase/patientClient";
+import { usePatientAuth } from "@/hooks/usePatientAuth";
 import { ChatWindow } from "@/components/ChatWindow";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
@@ -48,14 +48,14 @@ export default function PatientDashboard() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showNewConsultation, setShowNewConsultation] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut } = usePatientAuth();
   const { toast } = useToast();
-  const { incomingCall, activeCall, initiateCall, acceptCall, declineCall, endCall } = useCallManager();
+  const { incomingCall, activeCall, initiateCall, acceptCall, declineCall, endCall } = useCallManager(patientSupabase, user);
 
   useEffect(() => {
     fetchConversations();
     
-    const channel = supabase
+    const channel = patientSupabase
       .channel('patient-conversations')
       .on(
         'postgres_changes',
@@ -71,14 +71,14 @@ export default function PatientDashboard() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      patientSupabase.removeChannel(channel);
     };
   }, []);
 
   const fetchConversations = async () => {
     if (!user) return;
     
-    const { data, error } = await supabase
+    const { data, error } = await patientSupabase
       .from('conversations')
       .select('*')
       .eq('patient_id', user.id)
@@ -90,7 +90,7 @@ export default function PatientDashboard() {
       let doctorMap = new Map<string, { name: string; specialization: string | null; is_online: boolean; avatar_url: string | null }>();
       
       if (doctorIds.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles } = await patientSupabase
           .from('profiles')
           .select('user_id, full_name, specialization, is_online, avatar_url')
           .in('user_id', doctorIds);
@@ -132,7 +132,7 @@ export default function PatientDashboard() {
     // Call AI for initial analysis
     let aiResponse = "";
     try {
-      const response = await supabase.functions.invoke("analyze-symptoms", {
+      const response = await patientSupabase.functions.invoke("analyze-symptoms", {
         body: { symptoms: symptoms.trim() },
       });
       
@@ -144,7 +144,7 @@ export default function PatientDashboard() {
     }
 
     // Create conversation
-    const { data, error } = await supabase
+    const { data, error } = await patientSupabase
       .from('conversations')
       .insert({
         patient_id: user.id,
@@ -409,7 +409,7 @@ export default function PatientDashboard() {
                 </Card>
                 
                 <div className="flex-1">
-                  <ChatWindow conversationId={selectedConversation.id} />
+                  <ChatWindow conversationId={selectedConversation.id} supabaseClient={patientSupabase} user={user} />
                 </div>
               </div>
             ) : null}

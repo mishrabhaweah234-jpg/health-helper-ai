@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
 interface IncomingCall {
@@ -18,19 +17,18 @@ interface CallSession {
   remoteAvatar?: string;
 }
 
-// Helper to work with dynamic tables not in types
-const callSessionsTable = () => (supabase as any).from('call_sessions');
-
-export function useCallManager() {
-  const { user } = useAuth();
+export function useCallManager(supabaseClient: SupabaseClient, user: User | null) {
   const { toast } = useToast();
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [activeCall, setActiveCall] = useState<CallSession | null>(null);
 
+  // Helper to work with dynamic tables not in types
+  const callSessionsTable = () => (supabaseClient as any).from('call_sessions');
+
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
+    const channel = supabaseClient
       .channel('incoming-calls')
       .on(
         'postgres_changes',
@@ -50,7 +48,7 @@ export function useCallManager() {
 
           if (call.status === 'ringing') {
             // Fetch caller info
-            const { data: callerProfile } = await supabase
+            const { data: callerProfile } = await supabaseClient
               .from('profiles')
               .select('full_name, avatar_url')
               .eq('user_id', call.caller_id)
@@ -90,9 +88,9 @@ export function useCallManager() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabaseClient.removeChannel(channel);
     };
-  }, [user, incomingCall?.id, activeCall?.id]);
+  }, [user, incomingCall?.id, activeCall?.id, supabaseClient]);
 
   const initiateCall = useCallback(async (
     calleeId: string,
@@ -134,7 +132,7 @@ export function useCallManager() {
       });
       return null;
     }
-  }, [user, toast]);
+  }, [user, toast, supabaseClient]);
 
   const acceptCall = useCallback(async () => {
     if (!incomingCall) return;
@@ -159,7 +157,7 @@ export function useCallManager() {
         description: 'Could not accept the call.',
       });
     }
-  }, [incomingCall, toast]);
+  }, [incomingCall, toast, supabaseClient]);
 
   const declineCall = useCallback(async () => {
     if (!incomingCall) return;
@@ -173,7 +171,7 @@ export function useCallManager() {
     } catch (error) {
       console.error('Failed to decline call:', error);
     }
-  }, [incomingCall]);
+  }, [incomingCall, supabaseClient]);
 
   const endCall = useCallback(() => {
     setActiveCall(null);

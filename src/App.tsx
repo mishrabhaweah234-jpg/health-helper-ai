@@ -4,7 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PatientAuthProvider, usePatientAuth } from "@/hooks/usePatientAuth";
+import { DoctorAuthProvider, useDoctorAuth } from "@/hooks/useDoctorAuth";
 import PatientAuth from "./pages/PatientAuth";
 import DoctorAuth from "./pages/DoctorAuth";
 import PatientDashboard from "./pages/PatientDashboard";
@@ -14,8 +15,8 @@ import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+function PatientProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = usePatientAuth();
   
   if (loading) {
     return (
@@ -32,8 +33,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function RoleBasedRedirect() {
-  const { role, loading } = useAuth();
+function DoctorProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useDoctorAuth();
   
   if (loading) {
     return (
@@ -43,15 +44,15 @@ function RoleBasedRedirect() {
     );
   }
   
-  if (role === 'doctor') {
-    return <DoctorDashboard />;
+  if (!user) {
+    return <Navigate to="/auth/doctor" replace />;
   }
   
-  return <PatientDashboard />;
+  return <>{children}</>;
 }
 
-function AuthRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+function PatientAuthRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = usePatientAuth();
   
   if (loading) {
     return (
@@ -62,7 +63,25 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   }
   
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/patient" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+function DoctorAuthRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useDoctorAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  if (user) {
+    return <Navigate to="/doctor" replace />;
   }
   
   return <>{children}</>;
@@ -70,16 +89,25 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/auth" element={<AuthRoute><PatientAuth /></AuthRoute>} />
-    <Route path="/auth/doctor" element={<AuthRoute><DoctorAuth /></AuthRoute>} />
+    <Route path="/auth" element={<PatientAuthRoute><PatientAuth /></PatientAuthRoute>} />
+    <Route path="/auth/doctor" element={<DoctorAuthRoute><DoctorAuth /></DoctorAuthRoute>} />
     <Route 
-      path="/" 
+      path="/patient" 
       element={
-        <ProtectedRoute>
-          <RoleBasedRedirect />
-        </ProtectedRoute>
+        <PatientProtectedRoute>
+          <PatientDashboard />
+        </PatientProtectedRoute>
       } 
     />
+    <Route 
+      path="/doctor" 
+      element={
+        <DoctorProtectedRoute>
+          <DoctorDashboard />
+        </DoctorProtectedRoute>
+      } 
+    />
+    <Route path="/" element={<Navigate to="/auth" replace />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
@@ -91,9 +119,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
+          <PatientAuthProvider>
+            <DoctorAuthProvider>
+              <AppRoutes />
+            </DoctorAuthProvider>
+          </PatientAuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
