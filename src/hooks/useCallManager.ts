@@ -15,6 +15,7 @@ interface CallSession {
   isInitiator: boolean;
   remoteName: string;
   remoteAvatar?: string;
+  remoteUserId: string;
 }
 
 export function useCallManager(supabaseClient: SupabaseClient, user: User | null) {
@@ -120,6 +121,7 @@ export function useCallManager(supabaseClient: SupabaseClient, user: User | null
         isInitiator: true,
         remoteName: calleeName,
         remoteAvatar: calleeAvatar,
+        remoteUserId: calleeId,
       });
 
       return data.id;
@@ -147,6 +149,7 @@ export function useCallManager(supabaseClient: SupabaseClient, user: User | null
         isInitiator: false,
         remoteName: incomingCall.callerName,
         remoteAvatar: incomingCall.callerAvatar,
+        remoteUserId: incomingCall.callerId,
       });
       setIncomingCall(null);
     } catch (error) {

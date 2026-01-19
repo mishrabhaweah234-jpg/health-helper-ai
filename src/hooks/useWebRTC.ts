@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface UseWebRTCProps {
+  supabaseClient: SupabaseClient;
   callSessionId: string;
   userId: string;
+  remoteUserId: string;
   isInitiator: boolean;
   onRemoteStream: (stream: MediaStream) => void;
   onCallEnded: () => void;
@@ -14,13 +16,11 @@ const ICE_SERVERS = [
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
 
-// Helper to work with dynamic tables not in types
-const callSignalsTable = () => (supabase as any).from('call_signals');
-const callSessionsTable = () => (supabase as any).from('call_sessions');
-
 export function useWebRTC({
+  supabaseClient,
   callSessionId,
   userId,
+  remoteUserId,
   isInitiator,
   onRemoteStream,
   onCallEnded,
@@ -30,14 +30,19 @@ export function useWebRTC({
   const [isConnecting, setIsConnecting] = useState(true);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
 
+  // Helper to work with dynamic tables not in types
+  const callSignalsTable = () => (supabaseClient as any).from('call_signals');
+  const callSessionsTable = () => (supabaseClient as any).from('call_sessions');
+
   const sendSignal = useCallback(async (type: string, data: unknown) => {
     await callSignalsTable().insert({
       call_session_id: callSessionId,
-      sender_id: userId,
+      from_user_id: userId,
+      to_user_id: remoteUserId,
       signal_type: type,
       signal_data: data,
     });
-  }, [callSessionId, userId]);
+  }, [callSessionId, userId, remoteUserId, supabaseClient]);
 
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
@@ -94,8 +99,8 @@ export function useWebRTC({
     }
   }, [createPeerConnection, isInitiator, sendSignal]);
 
-  const handleSignal = useCallback(async (signal: { signal_type: string; signal_data: unknown; sender_id: string }) => {
-    if (signal.sender_id === userId) return;
+  const handleSignal = useCallback(async (signal: { signal_type: string; signal_data: unknown; from_user_id: string }) => {
+    if (signal.from_user_id === userId) return;
 
     const pc = peerConnectionRef.current;
     if (!pc) return;
@@ -132,7 +137,7 @@ export function useWebRTC({
       .eq('id', callSessionId);
     
     onCallEnded();
-  }, [callSessionId, sendSignal, onCallEnded]);
+  }, [callSessionId, sendSignal, onCallEnded, supabaseClient]);
 
   const toggleVideo = useCallback((enabled: boolean) => {
     localStreamRef.current?.getVideoTracks().forEach((track) => {
@@ -147,7 +152,7 @@ export function useWebRTC({
   }, []);
 
   useEffect(() => {
-    const channel = supabase
+    const channel = supabaseClient
       .channel(`call-signals-${callSessionId}`)
       .on(
         'postgres_changes',
@@ -158,15 +163,15 @@ export function useWebRTC({
           filter: `call_session_id=eq.${callSessionId}`,
         },
         (payload) => {
-          handleSignal(payload.new as { signal_type: string; signal_data: unknown; sender_id: string });
+          handleSignal(payload.new as { signal_type: string; signal_data: unknown; from_user_id: string });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabaseClient.removeChannel(channel);
     };
-  }, [callSessionId, handleSignal]);
+  }, [callSessionId, handleSignal, supabaseClient]);
 
   return {
     startCall,

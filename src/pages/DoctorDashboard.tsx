@@ -501,6 +501,9 @@ export default function DoctorDashboard() {
           callSessionId={activeCall.id}
           isInitiator={activeCall.isInitiator}
           remoteName={activeCall.remoteName}
+          remoteUserId={activeCall.remoteUserId}
+          supabaseClient={doctorSupabase}
+          user={user}
         />
       )}
     </div>
