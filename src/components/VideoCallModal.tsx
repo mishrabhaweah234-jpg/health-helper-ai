@@ -55,22 +55,90 @@ export function VideoCallModal({
   });
 
   useEffect(() => {
-    if (isOpen && user) {
-      startCall(true).then((stream) => {
-        setLocalStream(stream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
+    if (!isOpen || !user) return;
+
+    const initCall = async () => {
+      // If initiator, wait for the call to be accepted (status = 'active') before starting WebRTC
+      if (isInitiator) {
+        // Subscribe to call session updates to know when callee accepts
+        const channel = supabaseClient
+          .channel(`call-session-${callSessionId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'call_sessions',
+              filter: `id=eq.${callSessionId}`,
+            },
+            async (payload) => {
+              const updatedCall = payload.new as { status: string };
+              if (updatedCall.status === 'active') {
+                console.log('[VideoCallModal] Call accepted, starting WebRTC');
+                try {
+                  const stream = await startCall(true);
+                  setLocalStream(stream);
+                  if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = stream;
+                  }
+                } catch (error) {
+                  console.error('Failed to start call:', error);
+                  onClose();
+                }
+              } else if (['ended', 'declined', 'missed'].includes(updatedCall.status)) {
+                console.log('[VideoCallModal] Call ended/declined');
+                onClose();
+              }
+            }
+          )
+          .subscribe();
+
+        // Check if already active (in case the update happened before subscription)
+        const { data: currentSession } = await (supabaseClient as any)
+          .from('call_sessions')
+          .select('status')
+          .eq('id', callSessionId)
+          .single();
+
+        if (currentSession?.status === 'active') {
+          console.log('[VideoCallModal] Call already active, starting WebRTC');
+          try {
+            const stream = await startCall(true);
+            setLocalStream(stream);
+            if (localVideoRef.current) {
+              localVideoRef.current.srcObject = stream;
+            }
+          } catch (error) {
+            console.error('Failed to start call:', error);
+            onClose();
+          }
         }
-      }).catch((error) => {
-        console.error('Failed to start call:', error);
-        onClose();
-      });
-    }
+
+        return () => {
+          supabaseClient.removeChannel(channel);
+        };
+      } else {
+        // Receiver: start immediately since they just accepted the call
+        console.log('[VideoCallModal] Receiver starting WebRTC');
+        try {
+          const stream = await startCall(true);
+          setLocalStream(stream);
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Failed to start call:', error);
+          onClose();
+        }
+      }
+    };
+
+    initCall();
 
     return () => {
       localStream?.getTracks().forEach((track) => track.stop());
     };
-  }, [isOpen, user]);
+  }, [isOpen, user, isInitiator, callSessionId, supabaseClient]);
 
   const handleToggleVideo = () => {
     const newState = !videoEnabled;
