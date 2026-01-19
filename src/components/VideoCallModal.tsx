@@ -3,8 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2 } from 'lucide-react';
 import { useWebRTC } from '@/hooks/useWebRTC';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 
 interface VideoCallModalProps {
   isOpen: boolean;
@@ -12,6 +11,9 @@ interface VideoCallModalProps {
   callSessionId: string;
   isInitiator: boolean;
   remoteName?: string;
+  remoteUserId: string;
+  supabaseClient: SupabaseClient;
+  user: User | null;
 }
 
 export function VideoCallModal({
@@ -20,8 +22,10 @@ export function VideoCallModal({
   callSessionId,
   isInitiator,
   remoteName = 'User',
+  remoteUserId,
+  supabaseClient,
+  user,
 }: VideoCallModalProps) {
-  const { user } = useAuth();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -41,8 +45,10 @@ export function VideoCallModal({
   };
 
   const { startCall, endCall, toggleVideo, toggleAudio, isConnecting, connectionState } = useWebRTC({
+    supabaseClient,
     callSessionId,
     userId: user?.id || '',
+    remoteUserId,
     isInitiator,
     onRemoteStream: handleRemoteStream,
     onCallEnded: handleCallEnded,

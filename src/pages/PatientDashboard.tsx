@@ -446,6 +446,9 @@ export default function PatientDashboard() {
           callSessionId={activeCall.id}
           isInitiator={activeCall.isInitiator}
           remoteName={activeCall.remoteName}
+          remoteUserId={activeCall.remoteUserId}
+          supabaseClient={patientSupabase}
+          user={user}
         />
       )}
     </div>
